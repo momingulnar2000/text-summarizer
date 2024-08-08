@@ -2,26 +2,25 @@ import click
 import ollama
 
 def summarize_text(text):
-    prompt = f"Please provide a brief and concise summary of the following text: {text}"
     response = ollama.chat(model='qwen2:0.5b', messages=[
-        {'role': 'user', 'content': prompt},
+        {"role": "user", "content": f"Summarize the following text:\n{text}"}
     ])
-    return response['message']['content']
+    #print("Response:", response)
+    return response.get('message', {}).get('content', 'No summary found')
 
 @click.command()
-@click.argument('text', type=str, required=False)
-@click.option('--file', '-f', type=click.Path(exists=True), help='Path to the text file to summarize.')
-def summarize(text, file):
+@click.option('-f', '--file', type=click.Path(exists=True), help='Path to the input file.')
+@click.option('-t', '--text', type=str, help='Text to summarize directly.')
+def summarize(file, text):
     if file:
         with open(file, 'r') as f:
             text = f.read()
-    
-    if not text:
-        click.echo('Error: No text provided or file is empty.')
+    elif not text:
+        click.echo("Error: Either a file path or text must be provided.")
         return
 
     summary = summarize_text(text)
-    click.echo(f"Summary: {summary}")
+    click.echo(f"Summary:\n{summary}")
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     summarize()
